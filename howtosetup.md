@@ -51,7 +51,7 @@ When cloning the repository on a new computer, follow these steps to set up the 
   ```
 - Add your environment-specific variables, such as the OpenAI API key:
   ```
-  OPENAI_API_KEY=your_openai_api_key
+  OPENAI_API_KEY=ffff
   ```
 
 ---
