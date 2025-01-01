@@ -8,7 +8,7 @@ see documentation [here](howtocreate.md)
 
 ## migrate
 
-alembic revision --autogenerate -m "Initial tables"
+alembic revision --autogenerate -m "Initial tables"  
 alembic upgrade head
 
 ## folder structure
