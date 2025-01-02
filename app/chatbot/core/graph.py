@@ -6,19 +6,6 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from app.chatbot.core.nodes.nodetools import tools
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 
-from app.core import config
-
- # Create a settings instance
-settings = config.Settings()
-
-# Print the loaded values for debugging
-# print(f"OpenAI API Key: {settings.openai_api_key}")
-# print(f"LangChain API Key: {settings.langchain_api_key}")
-# print(f"LangChain Tracing: {settings.langchain_tracing_v2}")
-# print(f"LangChain Endpoint: {settings.langchain_endpoint}")
-# print(f"LangChain Project: {settings.langchain_project}")
-# print(f"Tavily API Key: {settings.tavily_api_key}")
-
 class ChatBotGraph:
     graph: CompiledStateGraph
 
@@ -42,5 +29,5 @@ class ChatBotGraph:
         # Any time a tool is called, we return to the chatbot to decide the next step
         graph.add_edge("tools", "chatbot")
         graph.add_edge(START, "chatbot")
-        graph_complier = graph.compile(checkpointer=checkpointer)
+        graph_complier = graph.compile(checkpointer=checkpointer, interrupt_before=["tools"])
         return graph_complier
