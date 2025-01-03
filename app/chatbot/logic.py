@@ -1,10 +1,12 @@
-import logging
+
 from typing import Dict, Any, Union, Tuple, Optional
 from fastapi import HTTPException, status
 from app.chatbot.core.graph import ChatBotGraph
 from app.schemas.chatbot import UserMessage
 from app.core.app_helper import get_app
-
+from langgraph.types import Command
+from contextlib import asynccontextmanager
+import logging
 logger = logging.getLogger(__name__)
 
 class ChatbotError(Exception):
@@ -58,8 +60,9 @@ async def check_next_steps(graph: ChatBotGraph, config: Dict[str, Any]) -> Optio
         snapshot = await graph.aget_state(config)
         logger.info(f"State snapshot: {snapshot}")
         
-        if hasattr(snapshot, 'next') and snapshot.next:
-            logger.info(f"Next step required: {snapshot.next}")
+        # https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/#using-with-invoke-and-ainvoke
+        if hasattr(snapshot, 'tasks') and snapshot.tasks:
+            logger.info(f"Next step required: {snapshot.values}")
             return "Need user approval for next step."
         return None
         
@@ -105,45 +108,33 @@ async def process_chat(user_message: UserMessage) -> str:
         
         # Prepare input data and config
         input_data = format_chat_input(user_message.msg)
-        config = format_config(user_message.threadId)
+        thread_config = format_config(user_message.threadId)
         
         logger.debug(f"Processing message with Thread ID: {user_message.threadId}")
         
         # Process message through graph
         if(user_message.status == "approval"):
-            result = await graph.ainvoke(None, config)
+            msg = user_message.msg
+            result = await graph.ainvoke(Command(resume={"action": "approval", "data": msg}), config=thread_config)
             logger.debug(f"Raw graph response: {result}")
+        elif (user_message.status == "reject"):
+            result = await graph.ainvoke(Command(resume={"action": "reject", "data": msg}), config=thread_config)
+            logger.debug(f"Raw graph response: {result}")    
         elif (user_message.status == "feedback"):
-            snapshot = await graph.aget_state(config)
-            logger.info(f"State snapshot: {snapshot}")
-
-            last_message = snapshot.values["messages"][-1]
-            tool_call = last_message.tool_calls[-1]
-            msg = 'User requested changes: ' + user_message.msg
-            input_data = format_chat_input(msg)
-            tool_message = {
-                "role": "tool",
-                "content": input_data,
-                "name": tool_call["name"],
-                "tool_call_id": tool_call["id"],
-            }
-            new_messages = [tool_message]
-            await graph.aupdate_state(
-                config,
-                {"messages": new_messages},
-            )
-
-            result = await graph.ainvoke(None, config)
+            msg = user_message.msg
+            result = await graph.ainvoke(Command(resume={"action": "feedback", "data": msg}), config=thread_config)
             logger.debug(f"Raw graph response: {result}")
         else:
-            result = await graph.ainvoke(input_data, config)
+            logger.debug(f"Callingggggggggg ")
+            result = await graph.ainvoke(input_data, config=thread_config)
             logger.debug(f"Raw graph response: {result}")
 
         # result = await graph.ainvoke(input_data, config)
         # logger.debug(f"Raw graph response: {result}")
         
         # Check for next steps
-        next_step = await check_next_steps(graph, config)
+        logger.info(f"Checking for next steps... {result}")
+        next_step = await check_next_steps(graph, config=thread_config)
         if next_step:
             return next_step
         

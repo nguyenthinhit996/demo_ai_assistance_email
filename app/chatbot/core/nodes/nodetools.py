@@ -22,4 +22,4 @@ class ChatBotTools:
         tool = TavilySearchResults(max_results=2)
         return tool
 
-tools = ChatBotTools().tools
+node_run_tool = ChatBotTools().tools

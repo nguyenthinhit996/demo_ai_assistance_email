@@ -4,7 +4,7 @@ from typing import Optional
 
 class StatusEnum(str, Enum):
     APPROVAL = "approval"
-    EDIT = "edit"
+    REJECT = "reject"
     FEEDBACK = "feedback"
 
 
