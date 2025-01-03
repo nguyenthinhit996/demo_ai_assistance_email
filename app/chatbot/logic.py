@@ -118,7 +118,7 @@ async def process_chat(user_message: UserMessage) -> str:
             result = await graph.ainvoke(Command(resume={"action": "approval", "data": msg}), config=thread_config)
             logger.debug(f"Raw graph response: {result}")
         elif (user_message.status == "reject"):
-            result = await graph.ainvoke(Command(resume={"action": "reject", "data": msg}), config=thread_config)
+            result = await graph.ainvoke(Command(resume={"action": "reject", "data": "None"}), config=thread_config)
             logger.debug(f"Raw graph response: {result}")    
         elif (user_message.status == "feedback"):
             msg = user_message.msg

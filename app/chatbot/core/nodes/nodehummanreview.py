@@ -28,14 +28,22 @@ def human_review_node(state: ChatBotState) -> Command[Literal["call_llm", "run_t
     if review_action == "approval":
         return Command(goto="run_tool")
     elif review_action == "reject":
-        updated_message = {
-            "role": "human",
-            "content": "requested changes",
-            # This is important - this needs to be the same as the message you replacing!
-            # Otherwise, it will show up as a separate message
-            "id": last_message.id,
-        }
-        return Command(goto="call_llm", update={"messages": [updated_message]})
+        updated_message = [
+            {
+                "role": "tool",
+                # This is our natural language feedback
+                "content": "error occured",
+                "name": tool_call["name"],
+                "tool_call_id": tool_call["id"],
+            },
+            {
+                "role": "human",
+                "content": "Just said Ok all stop step",
+                # This is important - this needs to be the same as the message you replacing!
+                # Otherwise, it will show up as a separate message
+            },
+        ]
+        return Command(goto="call_llm", update={"messages": updated_message})
     # update the AI message AND call tools
     elif review_action == "update":
         updated_message = {
