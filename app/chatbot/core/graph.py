@@ -1,7 +1,8 @@
 from langgraph.graph import StateGraph
 from langgraph.graph.state import CompiledStateGraph, START
+from langchain_core.runnables import RunnableLambda
 from app.chatbot.core.state import ChatBotState
-from app.chatbot.core.nodes.nodechatbot import node_call_llm
+from app.chatbot.core.nodes.nodechatbot import Assistant
 from langgraph.prebuilt import ToolNode, tools_condition
 from app.chatbot.core.nodes.nodetools import node_run_tool
 from app.chatbot.core.nodes.nodehummanreview import human_review_node
@@ -9,13 +10,14 @@ from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langchain_core.messages import (
     AnyMessage,
 )
+import logging
 from typing import (
     Any,
     Literal,
     Union,
 )
 from pydantic import BaseModel
-
+logger = logging.getLogger(__name__)
 
 def tools_condition(
     state: Union[list[AnyMessage], dict[str, Any], BaseModel],
@@ -33,6 +35,11 @@ def tools_condition(
         return "human_review"
     return "__end__"
 
+def handle_tool_error(state) -> dict:
+    error = state.get("error")
+    tool_calls = state["messages"][-1].tool_calls
+    logger.error(f"tool_calls {tool_calls}, error: {error}")
+
 class ChatBotGraph:
     graph: CompiledStateGraph
 
@@ -40,10 +47,12 @@ class ChatBotGraph:
        self.graph = self.graph_builder(checkpointer)
 
     def graph_builder(self, checkpointer: AsyncPostgresSaver):
-        tool_node = ToolNode(tools=node_run_tool)
+        tool_node = ToolNode(tools=node_run_tool).with_fallbacks(
+        [RunnableLambda(handle_tool_error)], exception_key="error"
+        )
         graph = StateGraph(ChatBotState)
 
-        graph.add_node("call_llm", node_call_llm)
+        graph.add_node("call_llm", Assistant())
         graph.add_node("run_tool", tool_node)
         graph.add_node("human_review", human_review_node)
 

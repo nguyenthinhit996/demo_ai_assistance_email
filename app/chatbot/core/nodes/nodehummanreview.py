@@ -32,15 +32,13 @@ def human_review_node(state: ChatBotState) -> Command[Literal["call_llm", "run_t
             {
                 "role": "tool",
                 # This is our natural language feedback
-                "content": "error occured",
+                "content":f"API call denied by user. Reasoning: 'No Need any more'.",
                 "name": tool_call["name"],
                 "tool_call_id": tool_call["id"],
             },
             {
                 "role": "human",
-                "content": "Just said Ok all stop step",
-                # This is important - this needs to be the same as the message you replacing!
-                # Otherwise, it will show up as a separate message
+                "content": "I dont need ask previous questions anymore",
             },
         ]
         return Command(goto="call_llm", update={"messages": updated_message})
