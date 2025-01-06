@@ -33,7 +33,17 @@ def create_app() -> FastAPI:
             # Initialize the checkpointer and graph
             app.state.checkpointer = AsyncPostgresSaver(app.state.pool)
             app.state.graph = ChatBotGraph(app.state.checkpointer).graph
-            
+
+            mock_requests = [
+                {"request_id": "1", "name": "Alice", "date": "2025-01-04", "status": "Pending"},
+                {"request_id": "2", "name": "Bob", "date": "2025-01-03", "status": "Completed"},
+                {"request_id": "3", "name": "Charlie", "date": "2025-01-02", "status": "In Progress"},
+                {"request_id": "4", "name": "Alice", "date": "2025-01-01", "status": "Pending"},
+                {"request_id": "5", "name": "Bob", "date": "2024-12-31", "status": "Completed"},
+            ]
+
+            app.state.mock_requests = mock_requests
+
             # Setup the checkpointer
             await app.state.checkpointer.setup()
             print("ChatBotGraph initialized successfully.")

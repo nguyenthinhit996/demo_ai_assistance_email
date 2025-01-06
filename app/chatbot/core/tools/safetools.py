@@ -1,8 +1,7 @@
  
-from typing import Annotated, List
+from typing import List
 from langchain_core.tools import BaseTool
-from app.core import config
-
+from app.chatbot.core.tools.request.getrequest import GetRequestTool
 
 
 
@@ -13,3 +12,5 @@ class SafeTools:
         if tools is None:
             tools = []
         self.tools = tools
+
+safe_tools = SafeTools([GetRequestTool()]).tools

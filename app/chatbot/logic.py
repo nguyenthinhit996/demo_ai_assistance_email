@@ -63,7 +63,22 @@ async def check_next_steps(graph: ChatBotGraph, config: Dict[str, Any]) -> Optio
         # https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/#using-with-invoke-and-ainvoke
         if hasattr(snapshot, 'tasks') and snapshot.tasks:
             logger.info(f"Next step required: {snapshot.values}")
-            return "Need user approval for next step."
+            logger.info(f"Next step required: {snapshot.tasks}")
+            # Access the first task in the tuple
+            first_task = snapshot.tasks[0]
+
+            # Access the interrupts from the task
+            interrupts = first_task.interrupts
+
+            # Since interrupts is a tuple, access the first Interrupt object
+            first_interrupt = interrupts[0]
+
+            # Extract the value of the Interrupt
+            interrupt_value = first_interrupt.value
+
+            # Print the result
+            print("interrupt_value", interrupt_value)
+            return interrupt_value
         return None
         
     except Exception as e:

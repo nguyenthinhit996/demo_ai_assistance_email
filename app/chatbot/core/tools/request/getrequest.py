@@ -6,12 +6,13 @@ from langchain_core.callbacks import (
 )
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel, Field
+from app.core.app_helper import get_app
 
 
 class GetRequestToolInput(BaseModel):
-    name: str = Field(description="get request by name")
     id: str = Field(description="get request by id")
-    time: Union[datetime, date]  = Field(description="get request by date or time", default=None)
+    name: Optional[str] = Field(description="get request by name", default=None)
+    time: Optional[Union[datetime, date]]  = Field(description="get request by date or time", default=None)
 
 class GetRequestTool(BaseTool):
     name: str = "GetRequestTool"
@@ -27,13 +28,8 @@ class GetRequestTool(BaseTool):
         run_manager: Optional[CallbackManagerForToolRun] = None
     ) -> List[Dict]:
             """Use the tool."""
-            mock_requests = [
-            {"request_id": "1", "name": "Alice", "date": "2025-01-04", "status": "Pending"},
-            {"request_id": "2", "name": "Bob", "date": "2025-01-03", "status": "Completed"},
-            {"request_id": "3", "name": "Charlie", "date": "2025-01-02", "status": "In Progress"},
-            {"request_id": "4", "name": "Alice", "date": "2025-01-01", "status": "Pending"},
-            {"request_id": "5", "name": "Bob", "date": "2024-12-31", "status": "Completed"},
-            ]
+            app = get_app()
+            mock_requests = app.state.mock_requests
             # Filter mock data based on inputs
             filtered_requests = [
                 request for request in mock_requests
@@ -62,3 +58,7 @@ class GetRequestTool(BaseTool):
         # LangChain will automatically provide a better implementation that will
         # kick off the task in a thread to make sure it doesn't block other async code.
         return self._run(name, id, time, run_manager=run_manager.get_sync()) 
+    
+
+
+    

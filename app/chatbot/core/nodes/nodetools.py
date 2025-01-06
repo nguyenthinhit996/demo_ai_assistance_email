@@ -2,7 +2,7 @@ from langchain_community.tools.tavily_search import TavilySearchResults
 from typing import Annotated, List
 from langchain_core.tools import BaseTool
 from app.core import config
-from app.chatbot.core.tools.submistiontools import GetRequestTool
+from app.chatbot.core.tools.request.getrequest import GetRequestTool
 
 from dotenv import load_dotenv
 
@@ -25,3 +25,4 @@ class ChatBotTools:
         return tool
 
 node_run_tool = ChatBotTools().tools
+ 
