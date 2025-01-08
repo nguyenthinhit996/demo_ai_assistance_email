@@ -13,8 +13,9 @@ router = APIRouter()
 @router.post("/")
 async def chat(user_message: UserMessage):
     try:
-        response = await process_chat(user_message)
-        return {"user_message": user_message, "bot_response": response}
+        # response = await process_chat(user_message)
+        
+        return {"user_message": user_message, "bot_response": user_message}
     except Exception as e:
         print("Error processing", {e})
         raise HTTPException(status_code=500, detail=str(e))
